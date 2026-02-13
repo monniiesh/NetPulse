@@ -1,0 +1,59 @@
+# NetPulse - ISP Quality Monitor
+# Usage: docker compose up -d
+# Dashboard: http://localhost:3000
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: netpulse-db
+    environment:
+      POSTGRES_DB: netpulse
+      POSTGRES_USER: netpulse
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-netpulse_dev}
+    volumes:
+      - netpulse-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netpulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: netpulse-dashboard
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://netpulse:${DB_PASSWORD:-netpulse_dev}@db:5432/netpulse
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  probe:
+    build:
+      context: ./probe
+      dockerfile: Dockerfile
+    container_name: netpulse-probe
+    environment:
+      NETPULSE_SERVER_URL: http://dashboard:3000
+      NETPULSE_API_KEY: ${PROBE_API_KEY:-}
+      NETPULSE_PROBE_ID: ${PROBE_ID:-}
+    volumes:
+      - probe-data:/var/lib/netpulse
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+    # ICMP ping requires NET_RAW capability
+    cap_add:
+      - NET_RAW
+
+volumes:
+  netpulse-data:
+  probe-data:

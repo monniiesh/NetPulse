@@ -1,0 +1,11 @@
+@media print {
+  body {
+    background: white;
+  }
+  .page-break {
+    page-break-after: always;
+  }
+  .no-print {
+    display: none;
+  }
+}

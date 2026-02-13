@@ -1,0 +1,38 @@
+services:
+  netpulse-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: netpulse-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: netpulse
+      POSTGRES_USER: netpulse
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-netpulse_dev}
+    volumes:
+      - netpulse-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netpulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  netpulse-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: netpulse-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://netpulse:${DB_PASSWORD:-netpulse_dev}@netpulse-db:5432/netpulse
+      NODE_ENV: production
+    env_file:
+      - .env
+    depends_on:
+      netpulse-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  netpulse-data:
