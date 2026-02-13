@@ -112,7 +112,9 @@ func (p *DNSProbe) queryResolver(resolver string) (Measurement, error) {
 func getSystemDNS() (string, error) {
 	file, err := os.Open("/etc/resolv.conf")
 	if err != nil {
-		return "", err
+		// /etc/resolv.conf unavailable (e.g. minimal container).
+		// Fall back to Cloudflare public DNS for latency measurement.
+		return "1.1.1.1", nil
 	}
 	defer file.Close()
 
@@ -131,5 +133,5 @@ func getSystemDNS() (string, error) {
 		return "", err
 	}
 
-	return "", fmt.Errorf("no nameserver found in /etc/resolv.conf")
+	return "1.1.1.1", nil
 }
