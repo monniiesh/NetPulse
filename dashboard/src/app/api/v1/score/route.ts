@@ -17,7 +17,15 @@ export async function GET(request: NextRequest) {
       to: searchParams.to || now.toISOString(),
     };
 
-    const validated = scoreQuerySchema.parse(params);
+    const parseResult = scoreQuerySchema.safeParse(params);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: parseResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const validated = parseResult.data;
 
     const query = `
       SELECT
@@ -56,13 +64,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(score);
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Invalid query parameters', details: error },
-        { status: 400 }
-      );
-    }
-
     console.error('Score API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

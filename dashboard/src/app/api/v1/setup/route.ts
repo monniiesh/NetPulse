@@ -24,7 +24,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, password } = setupSchema.parse(body);
+    const parseResult = setupSchema.safeParse(body);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', details: parseResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = parseResult.data;
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -35,13 +43,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request body', details: error.issues },
-        { status: 400 }
-      );
-    }
-
     console.error('Setup error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
