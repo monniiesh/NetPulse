@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Bell, Plus, Trash2, Edit2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react';
-
-interface Probe {
-  id: string;
-  name: string;
-  location: string | null;
-}
+import type { ProbeOption } from '@/types';
 
 interface AlertConfig {
   id: string;
@@ -50,7 +45,7 @@ const DEFAULT_PRESETS: Omit<AlertConfig, 'id' | 'created_at'>[] = [
   { probe_id: null, metric: 'bufferbloat', threshold: 300, comparison: 'gt', duration_min: 10, channel: 'webhook', channel_config: { url: '' }, is_active: true },
 ];
 
-export default function AlertsClient({ probes }: { probes: Probe[] }) {
+export default function AlertsClient({ probes }: { probes: ProbeOption[] }) {
   const [alerts, setAlerts] = useState<AlertConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

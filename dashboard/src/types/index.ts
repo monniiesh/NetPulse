@@ -59,6 +59,13 @@ export interface Probe {
   is_active: boolean;
 }
 
+/** Client-side probe shape passed as props from server components. */
+export interface ProbeOption {
+  id: string;
+  name: string;
+  location: string | null;
+}
+
 export interface IngestResponse {
   accepted: number;
   rejected: number;

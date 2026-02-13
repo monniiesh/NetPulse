@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { FileText, Download, Eye, Trash2, Plus, ChevronUp, Loader2 } from 'lucide-react';
-
-interface Probe {
-  id: string;
-  name: string;
-}
+import type { ProbeOption } from '@/types';
 
 interface Report {
   id: string;
@@ -30,7 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
   failed: 'text-red-400 bg-red-400/10 border-red-400/20',
 };
 
-export default function ReportsClient({ probes }: { probes: Probe[] }) {
+export default function ReportsClient({ probes }: { probes: ProbeOption[] }) {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);

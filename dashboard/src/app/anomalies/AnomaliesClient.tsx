@@ -3,12 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, Clock, TrendingUp, Filter } from 'lucide-react';
 import AnomalyHeatmap from '@/components/charts/AnomalyHeatmap';
-
-interface Probe {
-  id: string;
-  name: string;
-  location: string | null;
-}
+import type { ProbeOption } from '@/types';
 
 interface Anomaly {
   id: string;
@@ -46,7 +41,7 @@ const METRIC_UNITS: Record<string, string> = {
   bufferbloat: 'ms',
 };
 
-export default function AnomaliesClient({ probes }: { probes: Probe[] }) {
+export default function AnomaliesClient({ probes }: { probes: ProbeOption[] }) {
   const [selectedProbe, setSelectedProbe] = useState(probes[0]?.id || '');
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(true);

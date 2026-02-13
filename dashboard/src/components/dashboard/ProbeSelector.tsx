@@ -1,13 +1,9 @@
 'use client';
 
-interface Probe {
-  id: string;
-  name: string;
-  location: string | null;
-}
+import type { ProbeOption } from '@/types';
 
 interface ProbeSelectorProps {
-  probes: Probe[];
+  probes: ProbeOption[];
   selectedId: string;
   onChange: (id: string) => void;
 }

@@ -9,12 +9,7 @@ import PacketLossChart from '@/components/charts/PacketLossChart';
 import DnsChart from '@/components/charts/DnsChart';
 import BufferbloatChart from '@/components/charts/BufferbloatChart';
 import { TimeRange, timeRangeToParams } from '@/lib/chart-utils';
-
-interface Probe {
-  id: string;
-  name: string;
-  location: string | null;
-}
+import type { ProbeOption } from '@/types';
 
 interface MetricDataPoint {
   time: string;
@@ -27,7 +22,7 @@ interface MetricDataPoint {
 }
 
 interface HistoryClientProps {
-  probes: Probe[];
+  probes: ProbeOption[];
 }
 
 export function HistoryClient({ probes }: HistoryClientProps) {

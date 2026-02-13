@@ -6,17 +6,14 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ProbeSelector } from '@/components/dashboard/ProbeSelector';
 import { LiveIndicator } from '@/components/dashboard/LiveIndicator';
 import { Activity, Waves, AlertTriangle, Globe, Gauge } from 'lucide-react';
-import type { QualityScore as QualityScoreType, MetricPenalty } from '@/types';
+import type { QualityScore as QualityScoreType, MetricPenalty, ProbeOption } from '@/types';
 
-interface Probe {
-  id: string;
-  name: string;
-  location: string | null;
+interface DashboardProbe extends ProbeOption {
   isActive: boolean | null;
 }
 
 interface DashboardClientProps {
-  probes: Probe[];
+  probes: DashboardProbe[];
 }
 
 interface SSEConnectionStatus {
@@ -45,34 +42,11 @@ export function DashboardClient({ probes }: DashboardClientProps) {
     }
   }, []);
 
-  const fetchMetrics = useCallback(async (probeId: string) => {
-    try {
-      const now = new Date();
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-
-      const params = new URLSearchParams({
-        probe_id: probeId,
-        from: oneHourAgo.toISOString(),
-        to: now.toISOString(),
-        resolution: 'raw',
-      });
-
-      const response = await fetch(`/api/v1/metrics?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        // Latest metrics are already in the score breakdown
-        // This is just for initial load
-      }
-    } catch (error) {
-      console.error('Failed to fetch metrics:', error);
-    }
-  }, []);
-
   useEffect(() => {
     if (!selectedProbeId) return;
 
     setLoading(true);
-    Promise.all([fetchScore(selectedProbeId), fetchMetrics(selectedProbeId)])
+    fetchScore(selectedProbeId)
       .finally(() => setLoading(false));
 
     const scoreInterval = setInterval(() => {
@@ -80,7 +54,7 @@ export function DashboardClient({ probes }: DashboardClientProps) {
     }, 60000);
 
     return () => clearInterval(scoreInterval);
-  }, [selectedProbeId, fetchScore, fetchMetrics]);
+  }, [selectedProbeId, fetchScore]);
 
   useEffect(() => {
     if (!selectedProbeId) return;

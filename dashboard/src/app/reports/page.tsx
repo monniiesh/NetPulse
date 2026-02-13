@@ -11,7 +11,7 @@ export default async function ReportsPage() {
   if (!session) redirect('/login');
 
   const probeList = await db
-    .select({ id: probes.id, name: probes.name })
+    .select({ id: probes.id, name: probes.name, location: probes.location })
     .from(probes)
     .where(eq(probes.isActive, true));
 
