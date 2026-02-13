@@ -64,17 +64,7 @@ func (p *PingProbe) Run() ([]Measurement, error) {
 }
 
 func (p *PingProbe) pingTarget(target string) (Measurement, error) {
-	pinger, err := probing.NewPinger(target)
-	if err != nil {
-		return Measurement{}, fmt.Errorf("failed to create pinger: %w", err)
-	}
-
-	pinger.Count = p.count
-	pinger.Timeout = 10 * time.Second
-
-	// Try privileged (raw socket) first. If it fails or gets 0 replies,
-	// fall back to unprivileged (UDP) mode.
-	stats := p.runWithFallback(pinger)
+	stats := pingWithFallback(target, p.count, 10*time.Second)
 
 	if stats == nil || stats.PacketsSent == 0 {
 		return Measurement{}, fmt.Errorf("no packets sent")
@@ -108,9 +98,16 @@ func (p *PingProbe) pingTarget(target string) (Measurement, error) {
 	return measurement, nil
 }
 
-// runWithFallback tries privileged ICMP first, then unprivileged if no replies.
-func (p *PingProbe) runWithFallback(pinger *probing.Pinger) *probing.Statistics {
-	// Try privileged mode (raw socket).
+// pingWithFallback tries privileged ICMP (raw socket) first, then
+// unprivileged (UDP) if no replies are received.
+func pingWithFallback(target string, count int, timeout time.Duration) *probing.Statistics {
+	pinger, err := probing.NewPinger(target)
+	if err != nil {
+		return nil
+	}
+	pinger.Count = count
+	pinger.Timeout = timeout
+
 	pinger.SetPrivileged(true)
 	if err := pinger.Run(); err == nil {
 		stats := pinger.Statistics()
@@ -119,13 +116,12 @@ func (p *PingProbe) runWithFallback(pinger *probing.Pinger) *probing.Statistics 
 		}
 	}
 
-	// Fall back to unprivileged mode (UDP).
-	unprivPinger, err := probing.NewPinger(pinger.Addr())
+	unprivPinger, err := probing.NewPinger(target)
 	if err != nil {
 		return nil
 	}
-	unprivPinger.Count = pinger.Count
-	unprivPinger.Timeout = pinger.Timeout
+	unprivPinger.Count = count
+	unprivPinger.Timeout = timeout
 	unprivPinger.SetPrivileged(false)
 
 	if err := unprivPinger.Run(); err == nil {
@@ -165,6 +161,7 @@ func calculateJitter(rtts []time.Duration) float64 {
 		return 0
 	}
 
+	// RFC 3550 exponential weighted moving average with gain 1/16.
 	jitter := 0.0
 	for i := 1; i < len(rtts); i++ {
 		diff := math.Abs(rtts[i].Seconds() - rtts[i-1].Seconds())

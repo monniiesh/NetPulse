@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	probing "github.com/prometheus-community/pro-bing"
 )
 
 type BufferbloatProbe struct {
@@ -62,48 +60,11 @@ func (b *BufferbloatProbe) Run() ([]Measurement, error) {
 }
 
 func (b *BufferbloatProbe) measureLatency(ctx context.Context) (float64, error) {
-	stats := b.pingWithFallback()
+	stats := pingWithFallback(b.pingTarget, b.pingCount, 10*time.Second)
 	if stats == nil || stats.PacketsRecv == 0 {
 		return 0, fmt.Errorf("no successful pings")
 	}
 	return stats.AvgRtt.Seconds() * 1000, nil
-}
-
-// pingWithFallback tries privileged ICMP first, then unprivileged if no replies.
-func (b *BufferbloatProbe) pingWithFallback() *probing.Statistics {
-	pinger, err := probing.NewPinger(b.pingTarget)
-	if err != nil {
-		return nil
-	}
-	pinger.Count = b.pingCount
-	pinger.Timeout = 10 * time.Second
-
-	// Try privileged mode.
-	pinger.SetPrivileged(true)
-	if err := pinger.Run(); err == nil {
-		stats := pinger.Statistics()
-		if stats.PacketsRecv > 0 {
-			return stats
-		}
-	}
-
-	// Fall back to unprivileged.
-	unprivPinger, err := probing.NewPinger(b.pingTarget)
-	if err != nil {
-		return nil
-	}
-	unprivPinger.Count = b.pingCount
-	unprivPinger.Timeout = 10 * time.Second
-	unprivPinger.SetPrivileged(false)
-
-	if err := unprivPinger.Run(); err == nil {
-		stats := unprivPinger.Statistics()
-		if stats.PacketsRecv > 0 {
-			return stats
-		}
-	}
-
-	return nil
 }
 
 func (b *BufferbloatProbe) measureLatencyUnderLoad(ctx context.Context) (float64, error) {
