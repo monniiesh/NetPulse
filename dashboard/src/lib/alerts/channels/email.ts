@@ -41,7 +41,7 @@ export async function sendEmail(
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px;">
-      <h2 style="color: #f44336;">⚠️ NetPulse Alert</h2>
+      <h2 style="color: #f44336;">NetPulse Alert</h2>
       <p style="font-size: 16px;">${payload.message}</p>
       <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">
         <tr style="border-bottom: 1px solid #eee;">

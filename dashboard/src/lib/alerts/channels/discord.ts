@@ -31,7 +31,7 @@ export async function sendDiscord(
   const color = SEVERITY_COLORS[payload.metric] || 0xff0000;
 
   const embed = {
-    title: `⚠️ NetPulse Alert: ${payload.metric}`,
+    title: `NetPulse Alert: ${payload.metric}`,
     description: payload.message,
     color,
     fields: [
