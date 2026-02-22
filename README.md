@@ -101,7 +101,7 @@ The dashboard runs at [http://localhost:3000](http://localhost:3000).
 
 #### Probe
 
-Download a prebuilt binary from [Releases](https://github.com/YOUR_USERNAME/netpulse/releases), or build from source:
+Download a prebuilt binary from [Releases](https://github.com/monniiesh/netpulse), or build from source:
 
 ```bash
 cd probe
